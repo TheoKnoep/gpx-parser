@@ -36,6 +36,15 @@ class GPXParser {
 		$denivele = GPXParser::calculate_elevation($elevations_points); 
 
 
+
+		// get department of midpoint : ...TO DO
+		$nb = count($array_of_points);
+		$midpoint_index = (int)($nb/2); 
+		echo $midpoint_index; 
+		$list_depts[] = GPXParser::identifyDepartmentForCoord($array_of_points[$midpoint_index][0], $array_of_points[$midpoint_index][1]); 
+		print_r($list_depts); 
+
+
 		return [
 			'distance' => [
 				"value" => $distance, 
@@ -51,7 +60,7 @@ class GPXParser {
 
 
 
-	
+
 
 	/**
 	 * Calcule la distance en km entre deux coordonnées GPX
@@ -92,7 +101,7 @@ class GPXParser {
 			$total += GPXParser::haversine($lat1, $lon1, $lat2, $lon2);
 		}
 
-		return $total; 
+		return number_format($total, 3); 
 	}
 
 
@@ -112,6 +121,44 @@ class GPXParser {
 			}
 		}
 		return $total; 
+	}
+
+
+	/**
+	 * Permet de récupérer une liste des numéros de départements traversés par la trace
+	 */
+	public static function identifyDepartmentForCoord($lat, $lon) {
+		$result = file_get_contents("https://wxs.ign.fr/essentiels/geoportail/geocodage/rest/0.1/search?q=1&lat=$lat&lon=$lon&limit=1"); 
+		$array = json_decode($result, true); 
+		// print_r($array); 
+
+		$postcode = $array['features'][0]['properties']['postcode']; 
+		return number_format($postcode/1000, 0); 
+
+
+		// $curl = curl_init();
+		// curl_setopt_array($curl, [
+		// CURLOPT_URL => "https://wxs.ign.fr/essentiels/geoportail/geocodage/rest/0.1/search?q=1&lat=48.710308&lon=2.675025&limit=1",
+		// CURLOPT_RETURNTRANSFER => true,
+		// CURLOPT_ENCODING => "",
+		// CURLOPT_MAXREDIRS => 10,
+		// CURLOPT_TIMEOUT => 30,
+		// CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		// CURLOPT_CUSTOMREQUEST => "GET"
+		// ]);
+
+		// $response = curl_exec($curl);
+		// $err = curl_error($curl);
+
+		// curl_close($curl);
+
+		// if ($err) {
+		// echo "cURL Error #:" . $err;
+		// } else {
+		// echo $response;
+		// }
+
+		// print_r($array); 
 	}
 }
 
