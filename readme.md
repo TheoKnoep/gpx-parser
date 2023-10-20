@@ -11,6 +11,17 @@ Projet de back-office pour analyser un fichier GPX et extraire des données dive
 - miniature d'aperçu (au format image) 
 
 
+## Utilisation
+
+
+```
+require 'path/to/gpx-parser.php'; 
+
+$result = GPXParser::parse('path/to/file.gpx'); 
+
+```
+
+
 ## Ressources 
 
 Documentation des fichiers GPX : https://www.topografix.com/gpx.asp

@@ -2,6 +2,57 @@
 
 
 class GPXParser {
+
+	/**
+	 * @param string @gpx_file Path to GPX file
+	 */
+	public static function parse($gpx_path) {
+		$gpx = file_get_contents($gpx_path); 
+
+		// xml parser : 
+		$xml = simplexml_load_string($gpx, "SimpleXMLElement", LIBXML_NOCDATA); 
+		// Depuis un fichier on devrait pouvoir utiliser `simplexml_load_file()` 
+		$json = json_encode($xml);
+		$array = json_decode($json,TRUE);
+
+		$collection_of_points = $array['trk']['trkseg']['trkpt']; 
+
+		// get distance : 
+		$array_of_points = []; 
+		foreach($collection_of_points as $point) {
+			$array_of_points[] = [
+				$point['@attributes']['lat'], 
+				$point['@attributes']['lon']
+			]; 
+		}
+		$distance = GPXParser::calculate_distance($array_of_points); 
+
+
+		// get elevation : 
+		$elevations_points = []; 
+		foreach($collection_of_points as $point) {
+			$elevations_points[] = $point['ele']; 
+		}
+		$denivele = GPXParser::calculate_elevation($elevations_points); 
+
+
+		return [
+			'distance' => [
+				"value" => $distance, 
+				"unit" => "km"
+			],
+			'elevation' => [
+				"value" => $denivele, 
+				"unit" => "m"
+			]
+		]; 
+	}
+
+
+
+
+	
+
 	/**
 	 * Calcule la distance en km entre deux coordonnées GPX
 	 */
