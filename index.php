@@ -4,14 +4,23 @@ require 'gpx-parser.php';
 // mock up data : 
 echo '<pre>'; 
 
-// $path = 'gpx-files/sample.gpx'; 
-$path = 'gpx-files/carnelle.gpx'; 
+$paths = [
+	'gpx-files/Petit-Ballon-et-Platzerwassel.gpx',
+	'gpx-files/sample.gpx', 
+	'gpx-files/carnelle.gpx', 
+	'gpx-files/les-25bosses.gpx'
+]; 
 
-$gpx_data = GPXParser::parse($path); 
+foreach($paths as $path) {
+	$gpx_data = GPXParser::parse($path); 
 
-print_r($gpx_data); 
+	echo "$path : "; 
+	print_r($gpx_data); 
+}; 
 
-// GPXParser::identifyDepartmentForCoord("48.710308","2.675025"); 
+
+
+
 
 
 
