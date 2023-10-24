@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+
+	<!-- html2canvas : -->
+	<script defer src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+	<!-- Leaflet : -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Inclure Leaflet.GPX -->
+    <!-- <script src="https://unpkg.com/leaflet-gpx@1.4.0/leaflet-gpx.js"></script> -->
+
+</head>
+<body>
+
+	<div id="input">
+		<h1>Titre</h1>
+		<p>Paragraphe</p>
+	</div>
+	<button id="export">Exporter en tant qu'image</button>
+
+	<img id="thumbnail"/>
+
+
+	<div id="map" style="width: 600px; height: 600px;"></div>
+
+    <script>
+        // Initialisez la carte Leaflet
+        const map = L.map('map').setView([47.940318, 7.105312], 13);
+
+        // Ajoutez une couche de tuiles (par exemple, OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // // Chargez et affichez le fichier GPX
+        // new L.GPX('../gpx-files/Petit-Ballon-et-Platzerwassel.gpx', {
+        //     async: true,
+        // }).on('loaded', function(e) {
+        //     map.fitBounds(e.target.getBounds());
+        // }).addTo(map);
+    </script>
+	
+
+
+	<script>
+		const toExport = document.querySelector('#input'); 
+		const exportBtn = document.querySelector('#export'); 
+		const mapFrame = document.querySelector('#map'); 
+
+		exportBtn.onclick = () => {
+			exportToImage(mapFrame);
+		}
+
+
+		function exportToImage(targetHTMLElement) {
+			html2canvas(targetHTMLElement)
+				.then(function(canvas) {
+					const thumbnail = document.getElementById('thumbnail');
+					thumbnail.src = canvas.toDataURL('image/png');
+					console.log(canvas.toDataURL('image/png')); 
+					// open(canvas.toDataURL('image/png')); 
+			});
+		}
+
+
+		const iframe = document.getElementById('map');
+
+		iframe.addEventListener('load', function() {
+			console.log('iframe loaded'); 
+			// Le contenu de l'iframe est maintenant chargé
+			const iframeDocument = iframe.contentDocument;
+
+			// Vous pouvez manipuler le contenu de l'iframe ici, par exemple, pour redimensionner l'iframe
+			iframe.style.height = iframeDocument.documentElement.scrollHeight + 'px';
+
+			// Créez un canvas pour capturer l'image
+			const canvas = document.createElement('canvas');
+			const context = canvas.getContext('2d');
+
+			// Définissez la taille du canvas en fonction de la taille de l'iframe
+			canvas.width = iframeDocument.documentElement.clientWidth;
+			canvas.height = iframeDocument.documentElement.scrollHeight;
+
+			// Dessinez le contenu de l'iframe sur le canvas
+			context.drawWindow(iframe.contentWindow, 0, 0, canvas.width, canvas.height, 'rgb(255,255,255)');
+
+			// Convertissez le canvas en une image
+			const image = new Image();
+			image.src = canvas.toDataURL('image/png');
+
+			// Ajoutez l'image à la page ou effectuez d'autres actions avec elle
+			document.body.appendChild(image);
+		});
+	</script>
+
+</body>
+</html>

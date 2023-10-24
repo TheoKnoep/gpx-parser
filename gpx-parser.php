@@ -7,32 +7,37 @@ class GPXParser {
 	 * @param string @gpx_file Path to GPX file
 	 */
 	public static function parse($gpx_path) {
+		$return = []; 
+
 		$gpx = file_get_contents($gpx_path); 
 
 		$name = GPXParser::get_name($gpx); 
+		$return['name'] = $name; 
+
 		$array_of_points = GPXParser::parseGPXintoArrayOfPoints($gpx); 
 
 		$distance = GPXParser::calculate_distance($array_of_points); 
+		$return['distance'] = [
+			"value" => (float)$distance, 
+			"unit" => "km"
+		]; 
+
 		$denivele = GPXParser::calculate_elevation($array_of_points); 
+		$return['elevation'] = [
+			"value" => $denivele, 
+			"unit" => "m"
+		]; 
+
 		// $departements = GPXParser::getTraversedDepartements($array_of_points); // ne fonctionne pas très bien, à revoir
 		$cotes = GPXParser::identifyAscensions($array_of_points); 
 		$total_score = GPXParser::calculate_score($cotes); 
-
-
-
-
-		return [
-			'name' => $name, 
-			'distance' => [
-				"value" => $distance, 
-				"unit" => "km"
-			],
-			'elevation' => [
-				"value" => $denivele, 
-				"unit" => "m"
-			], 
-			'score' => $total_score
+		$return['score'] = [
+			'value' => $total_score, 
+			'details' => "<p>Le score de difficulté est une mesure arbitraire de la difficulté théorique d'un parcours. À distance équivalente, il permet d'avoir une idée de quel parcours sera le plus exigeant.<p><em>Il n'est pas lié à la longueur du parcours mais aux côtes et ascensions qui le composent.</em><p>Le calcul se base sur la formule de difficulté d'une ascension utilisée par <a href='https://www.procyclingstats.com/info/profile-score-explained' target='_blank'>ProCyclingStats</a> pour sa propre classification des parcours de course. Un score de difficulté est calculé pour chaque partie montante du parcours selon la formule :<blockquote><p>[(pente/2)^2] * [longueur en km]</blockquote><p>La somme de ces scores donne le score du parcours.<p><em>Remarque : il serait peut-être pertinent d'appliquer un coefficient à chaque score individuel de côte en fonction de leur emplacement dans le parcours (après tant de kilomètres, rapproché d'autres côtes, etc.). Cela mériterait un mode de calcul plus fin, qui n'est pas géré ici.</em>"
 		]; 
+
+
+		return $return; 
 	}
 
 
