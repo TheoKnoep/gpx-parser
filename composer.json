@@ -16,5 +16,6 @@
     "require": {
         "php": ">=7.4"
     }, 
-    "license": "MIT"
+    "license": "MIT", 
+    "minimum-stability": "dev"
 }
