@@ -1,0 +1,17 @@
+{
+    "name": "theoknoep/gpx-difficulty-score",
+    "description": "Simple PHP Lib for evaluate the difficulty of a GPX file (based on elevation)",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Theoknoep\\GpxDifficultyScore\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Theo Knoepflin",
+            "email": "theo.knoepflin@gmail.com"
+        }
+    ],
+    "require": {}
+}
