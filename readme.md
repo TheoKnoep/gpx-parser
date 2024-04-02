@@ -6,9 +6,9 @@ Projet de back-office pour analyser un fichier GPX et extraire des données dive
 - dénivelé
 - score de difficulté
 - adresse de départ 
-- départements traversés
-- boucle ou aller simple
-- miniature d'aperçu (au format image) 
+- départements traversés [TO DO]
+- boucle ou aller simple [TO DO]
+- miniature d'aperçu (au format image) [TO DO]
 
 
 ## Utilisation
