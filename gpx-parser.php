@@ -3,6 +3,10 @@
 
 class GPXParser {
 
+	// config : 
+	private static $MAX_ATTEMPTS = 100; 
+
+
 	/**
 	 * @param string @gpx_file Path to GPX file
 	 */
@@ -11,31 +15,35 @@ class GPXParser {
 
 		$gpx = file_get_contents($gpx_path); 
 
-		$name = GPXParser::get_name($gpx); 
+		$name = self::get_name($gpx); 
 		$return['name'] = $name; 
 
-		$array_of_points = GPXParser::parseGPXintoArrayOfPoints($gpx); 
+		$array_of_points = self::parseGPXintoArrayOfPoints($gpx); 
 
-		$distance = GPXParser::calculate_distance($array_of_points); 
+		$distance = self::calculate_distance($array_of_points); 
 		$return['distance'] = [
 			"value" => (float)$distance, 
 			"unit" => "km"
 		]; 
 
-		$denivele = GPXParser::calculate_elevation($array_of_points); 
+		$denivele = self::calculate_elevation($array_of_points); 
 		$return['elevation'] = [
 			"value" => $denivele, 
 			"unit" => "m"
 		]; 
 
-		// $departements = GPXParser::getTraversedDepartements($array_of_points); // ne fonctionne pas très bien, à revoir
-		$cotes = GPXParser::identifyAscensions($array_of_points); 
-		$total_score = GPXParser::calculate_score($cotes); 
+		// $departements = self::getTraversedDepartements($array_of_points); // ne fonctionne pas très bien, à revoir, c'est très long
+		// $return['starting_department'] = self::getStartingDepartement($array_of_points); 
+
+
+		$cotes = self::identifyAscensions($array_of_points); 
+		$total_score = self::calculate_score($cotes); 
 		$return['score'] = [
 			'value' => $total_score, 
 			'details' => "<p>Le score de difficulté est une mesure arbitraire de la difficulté théorique d'un parcours. À distance équivalente, il permet d'avoir une idée de quel parcours sera le plus exigeant.<p><em>Il n'est pas lié à la longueur du parcours mais aux côtes et ascensions qui le composent.</em><p>Le calcul se base sur la formule de difficulté d'une ascension utilisée par <a href='https://www.procyclingstats.com/info/profile-score-explained' target='_blank'>ProCyclingStats</a> pour sa propre classification des parcours de course. Un score de difficulté est calculé pour chaque partie montante du parcours selon la formule :<blockquote><p>[(pente/2)^2] * [longueur en km]</blockquote><p>La somme de ces scores donne le score du parcours.<p><em>Remarque : il serait peut-être pertinent d'appliquer un coefficient à chaque score individuel de côte en fonction de leur emplacement dans le parcours (après tant de kilomètres, rapproché d'autres côtes, etc.). Cela mériterait un mode de calcul plus fin, qui n'est pas géré ici.</em>"
 		]; 
 
+		$return['loop'] = self::isLoop($array_of_points); 
 
 		return $return; 
 	}
@@ -53,7 +61,7 @@ class GPXParser {
 
 
 	private static function get_name($xml_string) {
-		$array = GPXParser::xml_to_array($xml_string); 
+		$array = self::xml_to_array($xml_string); 
 		return $array['trk']['name']; 
 	}
 
@@ -68,7 +76,7 @@ class GPXParser {
 	 * ]
 	 */
 	private static function parseGPXintoArrayOfPoints($xml_string) {
-		$array = GPXParser::xml_to_array($xml_string); 
+		$array = self::xml_to_array($xml_string); 
 		$collection_of_points = $array['trk']['trkseg']['trkpt']; 
 		$output = []; 
 		foreach($collection_of_points as $point) {
@@ -121,7 +129,7 @@ class GPXParser {
 			$lat2 = $array_of_coord[$i+1]['lat'];
 			$lon2 = $array_of_coord[$i+1]['lon'];
 
-			$total += GPXParser::haversine($lat1, $lon1, $lat2, $lon2);
+			$total += self::haversine($lat1, $lon1, $lat2, $lon2);
 		}
 
 		return number_format($total, 3); 
@@ -174,9 +182,24 @@ class GPXParser {
 		
 		$list_depts = []; 
 		for ($i = 100; $i < $nb; $i = $i + 200) {
-			$list_depts[] = GPXParser::identifyDepartmentForCoord($array_of_points[$i]['lat'], $array_of_points[$i]['lon']); 
+			$list_depts[] = self::identifyDepartmentForCoord($array_of_points[$i]['lat'], $array_of_points[$i]['lon']); 
 		}
 		return $list_depts; 
+	}
+
+	private static function getStartingDepartement($array_of_points) {
+		$nb_of_attempts = 0; 
+		$dpt = "undefined"; 
+
+		for ($i = 0; $i < self::$MAX_ATTEMPTS; $i++) {
+			$dpt = self::identifyDepartmentForCoord($array_of_points[$i]['lat'], $array_of_points[$i]['lon']); 
+			if ($dpt !== "undefined") {
+				$nb_of_attempts = $i+1; 
+				break; 
+			}
+		}
+
+		return $dpt; 
 	}
 
 
@@ -198,7 +221,7 @@ class GPXParser {
 		// lissage des points avec moyennes mobiles : 
 		$moyennes_mobiles = []; 
 		for ($i = 2; $i < $number_of_points-2; $i ++) {
-			$moyennes_mobiles[$i] = GPXParser::calcul_moyenne($array_of_points[$i-2]['ele'], $array_of_points[$i-1]['ele'], $array_of_points[$i]['ele'], $array_of_points[$i+1]['ele'], $array_of_points[$i+2]['ele']); 
+			$moyennes_mobiles[$i] = self::calcul_moyenne($array_of_points[$i-2]['ele'], $array_of_points[$i-1]['ele'], $array_of_points[$i]['ele'], $array_of_points[$i+1]['ele'], $array_of_points[$i+2]['ele']); 
 		}
 
 		// print_r($moyennes_mobiles); 
@@ -222,12 +245,12 @@ class GPXParser {
 		$output = []; 
 		
 		for ($i = 0; $i < count($list_of_cotes); $i++) {
-			$dist = GPXParser::calculate_distance($list_of_cotes[$i]) * 1000; 
-			$elevation = GPXParser::calculate_elevation($list_of_cotes[$i]); 
+			$dist = self::calculate_distance($list_of_cotes[$i]) * 1000; 
+			$elevation = self::calculate_elevation($list_of_cotes[$i]); 
 			
 			if ($dist > $dist_threshold*1000) {
 				$pente = ($elevation / ($dist) ) * 100; 
-				$score = GPXParser::getProfileScore($dist/1000, $pente); 
+				$score = self::getProfileScore($dist/1000, $pente); 
 				// echo "La $i e cote fait $dist m et D+ de $elevation m / Pente moyenne de $pente % /  Score ::: $score <br/>"; 
 				if ($score > 1) {
 						$output[] = [
@@ -273,6 +296,23 @@ class GPXParser {
 
 	private static function calcul_moyenne($nombre1, $nombre2, $nombre3, $nb4, $nb5) {
 		return ($nombre1 + $nombre2 + $nombre3 + $nb4 + $nb5) / 5;
+	}
+
+
+
+
+	/**
+	 * Determine if the starting point is near the finish point
+	 */
+	private static function isLoop($array_of_points) {
+		
+		$start_point = $array_of_points[0]; 
+		$end_point = end($array_of_points); 
+		
+		$distance_km = self::haversine($start_point['lat'], $start_point['lon'], $end_point['lat'], $end_point['lon'] ); 
+
+		return $distance_km < 1 ? true : false; 
+
 	}
 }
 
