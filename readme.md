@@ -22,7 +22,7 @@ composer require theoknoep/gpx-difficulty-score
 <?php
 require 'vendor/autoload.php'; 
 
-$result_array = GPXParser::parse('path/to/file.gpx');
+$result_array = Theoknoep\GpxDifficultyScore\GpxDifficultyScore::parse('path/to/file.gpx');
 
 // display difficulty score :
 echo $result_array['score']['value']; 
