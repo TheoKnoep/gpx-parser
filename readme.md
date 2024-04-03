@@ -15,9 +15,17 @@ Projet de back-office pour analyser un fichier GPX et extraire des données dive
 
 
 ```
-require 'path/to/gpx-parser.php'; 
+composer require theoknoep/gpx-difficulty-score
+```
 
-$result = GPXParser::parse('path/to/file.gpx'); 
+```
+<?php
+require 'vendor/autoload.php'; 
+
+$result_array = GPXParser::parse('path/to/file.gpx');
+
+// display difficulty score :
+echo $result_array['score']['value']; 
 
 ```
 
